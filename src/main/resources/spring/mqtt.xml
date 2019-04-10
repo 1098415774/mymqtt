@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:int-mqtt="http://www.springframework.org/schema/integration/mqtt"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-5.1.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+        http://www.springframework.org/schema/integration/mqtt http://www.springframework.org/schema/integration/mqtt/spring-integration-mqtt-5.1.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+<!--    <context:annotation-config/>-->
+
+    <bean id="connectOptions" class="org.eclipse.paho.client.mqttv3.MqttConnectOptions">
+        <property name="userName" value="admin"/>
+        <property name="password" value="password"/>
+        <property name="serverURIs">
+            <array>
+                <value>tcp://127.0.0.1:61613</value>
+            </array>
+        </property>
+        <property name="keepAliveInterval" value="2"/>
+    </bean>
+
+    <bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
+        <property name="connectionOptions" ref="connectOptions"/>
+    </bean>
+
+    <bean id="mqttPahoMessageHandler" class="org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler" >
+        <constructor-arg name="url" value="tcp://localhost:1883"></constructor-arg>
+        <constructor-arg name="clientId" value="CID_OUT"></constructor-arg>
+        <constructor-arg name="clientFactory" ref="clientFactory"></constructor-arg>
+
+
+    </bean>
+    <bean id="activateDoorbellHandler" class="com.sh.doorbell.registerandactivate.ActivateDoorbellHandler">
+        <property name="topic" value="act"/>
+    </bean>
+    <bean id="activateHandler" class="com.sh.doorbell.registerandactivate.ActivateHandler">
+        <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
+        <property name="myAbstractHandler" ref="activateDoorbellHandler"/>
+    </bean>
+    <bean id="imageHandler" class="com.sh.doorbell.image.ImageHandler">
+        <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
+    </bean>
+
+    <int-mqtt:message-driven-channel-adapter
+            id="activateAdapter" client-id="IN_CID_ACTIVATE" url="tcp://localhost:1883"
+            topics="activate/#"
+            qos="1"
+            client-factory="clientFactory"
+            auto-startup="true"
+            send-timeout="12"
+            channel="activateCase"
+            recovery-interval="3000"
+    />
+
+    <int:channel id="activateCase" />
+
+
+    <int:service-activator id="activateCaseService"
+                           input-channel="activateCase" ref="activateHandler" method="handleMessage" />
+
+    <int-mqtt:message-driven-channel-adapter client-id="IN_CID_IMG" url="tcp://localhost:1883"
+            id="imgAdapter"
+            topics="img/#"
+            qos="1"
+            client-factory="clientFactory"
+            auto-startup="true"
+            send-timeout="12"
+            channel="imgCase"
+            recovery-interval="3000"
+    />
+
+    <int:channel id="imgCase" />
+    <int:service-activator id="imgCaseService"
+                           input-channel="imgCase" ref="imageHandler" method="handleMessage" />
+
+    <!--<int-mqtt:message-driven-channel-adapter client-id="OUT_CID_CONTROLLER" url="tcp://localhost:1883" -->
+            <!--id="contrlAdapter"-->
+            <!--topics="contrl/#"-->
+            <!--qos="1"-->
+            <!--client-factory="clientFactory"-->
+            <!--auto-startup="true"-->
+            <!--send-timeout="12"-->
+            <!--channel="imgCase"                                 -->
+    <!--/>-->
+
+    <!--<int:channel id="contrlCase" />-->
+    <!--<int:service-activator id="contrlCaseService"-->
+                           <!--input-channel="contrlCase" ref="imageHandler" method="handleMessage" />-->
+    <!--<int-mqtt:outbound-channel-adapter client-id="CID_OUT" url="tcp://localhost:1883"-->
+            <!--id="outBoundAdapter"-->
+            <!--client-factory="clientFactory"-->
+            <!--default-qos="1"-->
+            <!--default-retained="true"-->
+            <!--async="false"-->
+            <!--async-events="false"-->
+            <!--channel=""-->
+    <!--/>-->
+</beans>

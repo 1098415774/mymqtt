@@ -24,6 +24,7 @@ public class ActivateHandler extends MyAbstractMqttMessageHandler {
             logger.info(msg);
             MqttMessage mqttMessage = null;
             mqttMessage = process(mqttMessage,msg);
+            String topic = (String) message.getHeaders().get("mqtt_receivedTopic");
             if (mqttMessage != null){
                 if (StringUtils.isEmpty(mqttMessage.getTopic())){
                     logger.error("topic is null");
@@ -34,7 +35,9 @@ public class ActivateHandler extends MyAbstractMqttMessageHandler {
                 Message<String> result = MessageBuilder.withPayload(mqttMessage.getMessage()).setHeader(MqttHeaders.TOPIC,mqttMessage.getTopic()).build();
                 while (true){
                     try {
-                        mqttPahoMessageHandler.handleMessage(result);
+                        if (mqttPahoMessageHandler != null){
+                            mqttPahoMessageHandler.handleMessage(result);
+                        }
                         break;
                     }catch (Exception e){
 

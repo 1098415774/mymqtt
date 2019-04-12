@@ -9,13 +9,14 @@ import com.sh.doorbell.registerandactivate.service.EquipInfoService;
 import com.sh.doorbell.registerandactivate.service.impl.EquipInfoServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 
 public class ActivateDoorbellHandler extends MyAbstractHandler {
 
     private Logger logger = LogManager.getLogger(ActivateDoorbellHandler.class);
-//    @Autowired
+    @Autowired
     private EquipInfoService equipInfoService;
 
     private String topic;

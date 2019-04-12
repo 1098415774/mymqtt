@@ -40,7 +40,7 @@
         <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
         <property name="myAbstractHandler" ref="activateDoorbellHandler"/>
     </bean>
-    <bean id="imageHandler" class="com.sh.doorbell.image.ImageHandler">
+    <bean id="dataHandler" class="com.sh.doorbell.image.DataHandler">
         <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
     </bean>
 
@@ -61,20 +61,20 @@
     <int:service-activator id="activateCaseService"
                            input-channel="activateCase" ref="activateHandler" method="handleMessage" />
 
-    <int-mqtt:message-driven-channel-adapter client-id="IN_CID_IMG" url="tcp://localhost:1883"
-            id="imgAdapter"
-            topics="img/#"
+    <int-mqtt:message-driven-channel-adapter client-id="IN_CID_DATA" url="tcp://localhost:1883"
+            id="dataAdapter"
+            topics="data/#"
             qos="1"
             client-factory="clientFactory"
             auto-startup="true"
             send-timeout="12"
-            channel="imgCase"
+            channel="dataCase"
             recovery-interval="3000"
     />
 
-    <int:channel id="imgCase" />
-    <int:service-activator id="imgCaseService"
-                           input-channel="imgCase" ref="imageHandler" method="handleMessage" />
+    <int:channel id="dataCase" />
+    <int:service-activator id="dataCaseService"
+                           input-channel="dataCase" ref="dataHandler" method="handleMessage" />
 
     <!--<int-mqtt:message-driven-channel-adapter client-id="OUT_CID_CONTROLLER" url="tcp://localhost:1883" -->
             <!--id="contrlAdapter"-->

@@ -2,6 +2,7 @@ package com.sh.doorbell.devicecontrol.controller;
 
 
 import com.sh.base.cache.LocalUserManager;
+import com.sh.base.cache.RedisCacheManager;
 import com.sh.base.result.ResultConstants;
 import com.sh.base.result.ResultData;
 import com.sh.doorbell.devicecontrol.service.DeviceControlService;
@@ -21,6 +22,8 @@ public class DeviceController {
     private ResultData resultData;
     @Autowired
     private DeviceControlService deviceControlService;
+    @Autowired
+    private RedisCacheManager redisCacheManager;
 
     @RequestMapping("open")
     @ResponseBody
@@ -33,6 +36,23 @@ public class DeviceController {
                 throw new Exception("user is null");
             }
             deviceControlService.open(eid);
+            resultData.setState(ResultConstants.SUCCESS);
+        }catch (Exception e){
+            logger.error(e);
+            resultData.setMsg(e.getMessage());
+        }
+        return resultData;
+    }
+
+    @RequestMapping("getdata")
+    @ResponseBody
+    public ResultData getEquipData(String eid){
+        resultData = new ResultData();
+        resultData.setState(ResultConstants.ERROR);
+        try {
+            UserEntity user = LocalUserManager.getInstance().getCurrentUser();
+            String data = (String) redisCacheManager.get("E" + eid + "U" + user.getId());
+            resultData.setMsg(data);
             resultData.setState(ResultConstants.SUCCESS);
         }catch (Exception e){
             logger.error(e);

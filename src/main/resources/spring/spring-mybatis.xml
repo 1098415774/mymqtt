@@ -12,8 +12,8 @@
 
     <!-- 扫描service包下所有使用注解的类型 -->
     <context:component-scan base-package="com.sh.doorbell.**.service"/>
-<!--    &lt;!&ndash; 配置数据库相关参数properties的属性：${url} &ndash;&gt;-->
-    <context:property-placeholder location="classpath:application.properties"/>
+<!--&lt;!&ndash;    &lt;!&ndash; 配置数据库相关参数properties的属性：${url} &ndash;&gt;&ndash;&gt;-->
+<!--    <context:property-placeholder location="classpath:application.properties"/>-->
 
 
 

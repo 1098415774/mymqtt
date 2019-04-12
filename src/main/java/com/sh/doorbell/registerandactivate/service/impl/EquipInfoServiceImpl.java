@@ -6,6 +6,9 @@ import com.sh.doorbell.registerandactivate.service.EquipInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+
 @Service
 public class EquipInfoServiceImpl implements EquipInfoService {
     @Autowired
@@ -24,5 +27,15 @@ public class EquipInfoServiceImpl implements EquipInfoService {
     @Override
     public int update(EquipInfoEntity record) {
         return mapper.updateByPrimaryKeySelective(record);
+    }
+
+    @Override
+    public List<EquipInfoEntity> selectByTypeAndUserId(Integer type, String userId) {
+        HashMap<String,Object> map = new HashMap<>();
+        EquipInfoEntity entity = new EquipInfoEntity();
+        entity.setType(type);
+        entity.setUserId(userId);
+        map.put("entity",entity);
+        return mapper.selectByMap(map);
     }
 }

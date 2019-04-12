@@ -3,6 +3,9 @@ package com.sh.doorbell.registerandactivate.dao;
 import com.sh.doorbell.registerandactivate.entity.EquipInfoEntity;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
+import java.util.List;
+
 @Repository
 public interface EquipInfoMapper {
     /**
@@ -52,4 +55,10 @@ public interface EquipInfoMapper {
      * @mbggenerated
      */
     int updateByPrimaryKey(EquipInfoEntity record);
+
+    List<EquipInfoEntity> selectAll();
+
+    List<EquipInfoEntity> selectByMap(HashMap map);
+
+    int selectCoutByMap(HashMap map);
 }

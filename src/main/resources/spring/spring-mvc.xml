@@ -17,7 +17,7 @@
     <!-- 配置数据库相关参数properties的属性：${url} -->
     <context:property-placeholder location="classpath:application.properties"/>
 
-    <import resource="mqtt.xml"/>
+
     <!-- 开启SpringMVC注解模式 -->
     <mvc:annotation-driven>
         <mvc:message-converters register-defaults="true">

@@ -1,21 +1,29 @@
 package com.sh.mqtt.core;
 
+import com.sh.base.utils.SpringUtil;
 import com.sh.base.utils.StringUtils;
+import com.sh.doorbell.handler.mqtt.MqttMessage;
+import com.sh.doorbell.handler.mqtt.MyAbstractMqttMessageHandler;
 import com.sh.mqtt.annotation.MQTTRequestMapping;
+import com.sh.mqtt.annotation.MQTTResponseBody;
 import com.sh.mqtt.core.analysis.StrWildcard;
 import com.sh.mqtt.core.method.MqttHandlerMethod;
 import com.sh.mqtt.stereotype.MQTTController;
+import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.MessageBuilder;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
-public class MqttMVCApplication implements MessageHandler {
+public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements MessageHandler {
 
     private String typeAliasesPackage;
 
@@ -23,12 +31,46 @@ public class MqttMVCApplication implements MessageHandler {
 
     private HashMap<String, MqttHandlerMethod> visitMap;
 
-
-    @Override
-    public void handleMessage(Message<?> message) throws MessagingException {
+    MqttMVCApplication(){
 
     }
 
+
+    @Override
+    public void handleMessage(Message<?> message) throws MessagingException {
+        String topic = (String) message.getHeaders().get("mqtt_receivedTopic");
+        MqttHandlerMethod mqttHandlerMethod = visitMap.get(topic);
+        if (mqttHandlerMethod == null){
+            return;
+        }
+        String msg = message.getPayload().toString();
+        try {
+            Object result = mqttHandlerMethod.invoke(msg);
+            if (result == null || !mqttHandlerMethod.isResponse()){
+                return;
+            }
+            MqttMessage mqttMessage = mqttHandlerMethod.getResponsemsg();
+            mqttMessage.setMessage((String) result);
+            Message<String> responsemessage = MessageBuilder.withPayload(mqttMessage.getMessage()).setHeader(MqttHeaders.TOPIC,mqttMessage.getTopic()).build();
+            while (true){
+                try {
+                    if (mqttPahoMessageHandler != null){
+                        mqttPahoMessageHandler.handleMessage(responsemessage);
+                    }
+                    break;
+                }catch (Exception e){
+
+                }
+            }
+
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @PostConstruct
     public void init(){
         visitMap = new HashMap<>();
         List<String> urls = getClassUrl(typeAliasesPackage);
@@ -63,6 +105,7 @@ public class MqttMVCApplication implements MessageHandler {
             String  cc = getClassLoader().getResource("").getPath();
             File classloaderfile = new File(cc);
             for (String url : urls){
+                boolean isresponse = false;
                 File file = new File(url);
                 if (!file.exists() || !file.isFile()){
                     continue;
@@ -75,26 +118,38 @@ public class MqttMVCApplication implements MessageHandler {
                 Class clazz = loader.loadClass(url);
                 MQTTController mqttController = (MQTTController) clazz.getAnnotation(MQTTController.class);
                 MQTTRequestMapping request = (MQTTRequestMapping) clazz.getAnnotation(MQTTRequestMapping.class);
+                MQTTResponseBody response = (MQTTResponseBody) clazz.getAnnotation(MQTTResponseBody.class);
                 if (mqttController == null || request == null){
                     continue;
                 }
+                if (response != null){
+                    isresponse = true;
+                }
                 String fvisiturl = request.value();
                 Method[] methods = clazz.getDeclaredMethods();
-                Object obj = clazz.newInstance();
+                Object obj = SpringUtil.getBean(clazz); //基于spring实现
+//                Object obj = clazz.newInstance();
                 for (Method method : methods){
+                    boolean ismresponse = true;
                     MQTTRequestMapping mrequest =  method.getAnnotation(MQTTRequestMapping.class);
                     if (mrequest == null){
                         continue;
                     }
+                    response = (MQTTResponseBody) method.getAnnotation(MQTTResponseBody.class);
+                    if (!isresponse && response == null){
+                        ismresponse = false;
+                    }
                     String visiturl = fvisiturl + "/" + mrequest.value();
                     MqttHandlerMethod mqttHandlerMethod = new MqttHandlerMethod(obj,method);
+                    if (ismresponse){
+                        mqttHandlerMethod.setIsresponse(ismresponse);
+                        MqttMessage rmsg = new MqttMessage();
+                        rmsg.setTopic(response.value());
+                        mqttHandlerMethod.setResponsemsg(rmsg);
+                    }
                     visitMap.put(visiturl,mqttHandlerMethod);
                 }
             }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

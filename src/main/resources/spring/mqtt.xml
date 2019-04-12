@@ -33,20 +33,24 @@
 
 
     </bean>
-    <bean id="activateDoorbellHandler" class="com.sh.doorbell.registerandactivate.ActivateDoorbellHandler">
-        <property name="topic" value="act"/>
-    </bean>
-    <bean id="activateHandler" class="com.sh.doorbell.registerandactivate.ActivateHandler">
-        <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
-        <property name="myAbstractHandler" ref="activateDoorbellHandler"/>
-    </bean>
-    <bean id="dataHandler" class="com.sh.doorbell.image.DataHandler">
+    <bean id="mqttMVCApplication" class="com.sh.mqtt.core.MqttMVCApplication">
+        <property name="typeAliasesPackage" value="com.sh.mqtt.**"/>
         <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
     </bean>
+<!--    <bean id="activateDoorbellHandler" class="com.sh.doorbell.registerandactivate.ActivateDoorbellHandler">-->
+<!--        <property name="topic" value="act"/>-->
+<!--    </bean>-->
+<!--    <bean id="activateHandler" class="com.sh.doorbell.registerandactivate.ActivateHandler">-->
+<!--        <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>-->
+<!--        <property name="myAbstractHandler" ref="activateDoorbellHandler"/>-->
+<!--    </bean>-->
+<!--    <bean id="dataHandler" class="com.sh.doorbell.image.DataHandler">-->
+<!--        <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>-->
+<!--    </bean>-->
 
     <int-mqtt:message-driven-channel-adapter
             id="activateAdapter" client-id="IN_CID_ACTIVATE" url="tcp://localhost:1883"
-            topics="activate/#"
+            topics="#"
             qos="1"
             client-factory="clientFactory"
             auto-startup="true"
@@ -59,22 +63,22 @@
 
 
     <int:service-activator id="activateCaseService"
-                           input-channel="activateCase" ref="activateHandler" method="handleMessage" />
+                           input-channel="activateCase" ref="mqttMVCApplication" method="handleMessage" />
 
-    <int-mqtt:message-driven-channel-adapter client-id="IN_CID_DATA" url="tcp://localhost:1883"
-            id="dataAdapter"
-            topics="data/#"
-            qos="1"
-            client-factory="clientFactory"
-            auto-startup="true"
-            send-timeout="12"
-            channel="dataCase"
-            recovery-interval="3000"
-    />
+<!--    <int-mqtt:message-driven-channel-adapter client-id="IN_CID_DATA" url="tcp://localhost:1883"-->
+<!--            id="dataAdapter"-->
+<!--            topics="data/#"-->
+<!--            qos="1"-->
+<!--            client-factory="clientFactory"-->
+<!--            auto-startup="true"-->
+<!--            send-timeout="12"-->
+<!--            channel="dataCase"-->
+<!--            recovery-interval="3000"-->
+<!--    />-->
 
-    <int:channel id="dataCase" />
-    <int:service-activator id="dataCaseService"
-                           input-channel="dataCase" ref="dataHandler" method="handleMessage" />
+<!--    <int:channel id="dataCase" />-->
+<!--    <int:service-activator id="dataCaseService"-->
+<!--                           input-channel="dataCase" ref="dataHandler" method="handleMessage" />-->
 
     <!--<int-mqtt:message-driven-channel-adapter client-id="OUT_CID_CONTROLLER" url="tcp://localhost:1883" -->
             <!--id="contrlAdapter"-->

@@ -21,6 +21,9 @@ public class MqttHandlerMethod {
     }
 
     public Object invoke(Object... args) throws InvocationTargetException, IllegalAccessException {
+        if (method.getParameterCount() < 1){
+            return method.invoke(obj,null);
+        }
         return method.invoke(obj,args);
     }
 

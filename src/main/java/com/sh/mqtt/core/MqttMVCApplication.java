@@ -30,7 +30,7 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
     private ThreadPoolExecutor threadPoolExecutor;
 
     private String typeAliasesPackage;
-
+    
     private ClassLoader classloader;
 
     private HashMap<String, MqttHandlerMethod> visitMap;
@@ -133,7 +133,7 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
                     if (mrequest == null){
                         continue;
                     }
-                    response = (MQTTResponseBody) method.getAnnotation(MQTTResponseBody.class);
+                    response = method.getAnnotation(MQTTResponseBody.class);
                     if (!isresponse && response == null){
                         ismresponse = false;
                     }

@@ -1,5 +1,7 @@
 package com.sh.mqtt.core;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.sh.doorbell.handler.mqtt.MqttMessage;
 import com.sh.mqtt.core.method.MqttHandlerMethod;
 import org.springframework.integration.mqtt.support.MqttHeaders;
@@ -33,7 +35,14 @@ public class MqttServiceRunnable implements Runnable{
                 return;
             }
             MqttMessage mqttMessage = mqttHandlerMethod.getResponsemsg();
-            mqttMessage.setMessage((String) result);
+            if (result instanceof MqttMessage){
+                mqttMessage = (MqttMessage) result;
+            } else if (result instanceof String){
+                mqttMessage.setMessage((String) result);
+            } else {
+                String resultmsg = JSON.toJSONString(result); //此处暂定用json实现，可自定义类实现回复封装
+                mqttMessage.setMessage(resultmsg);
+            }
             listener.response(mqttMessage);
         } catch (InvocationTargetException e) {
             e.printStackTrace();

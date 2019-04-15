@@ -22,8 +22,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements MessageHandler {
+
+    private ThreadPoolExecutor threadPoolExecutor;
 
     private String typeAliasesPackage;
 
@@ -32,7 +36,7 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
     private HashMap<String, MqttHandlerMethod> visitMap;
 
     MqttMVCApplication(){
-
+        threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
     }
 
 
@@ -43,31 +47,25 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
         if (mqttHandlerMethod == null){
             return;
         }
-        String msg = message.getPayload().toString();
-        try {
-            Object result = mqttHandlerMethod.invoke(msg);
-            if (result == null || !mqttHandlerMethod.isResponse()){
-                return;
-            }
-            MqttMessage mqttMessage = mqttHandlerMethod.getResponsemsg();
-            mqttMessage.setMessage((String) result);
-            Message<String> responsemessage = MessageBuilder.withPayload(mqttMessage.getMessage()).setHeader(MqttHeaders.TOPIC,mqttMessage.getTopic()).build();
-            while (true){
-                try {
-                    if (mqttPahoMessageHandler != null){
-                        mqttPahoMessageHandler.handleMessage(responsemessage);
-                    }
-                    break;
-                }catch (Exception e){
 
+        MqttServiceRunnable serviceRunnable = new MqttServiceRunnable(mqttHandlerMethod,message);
+        serviceRunnable.setListener(new MqttSendListener() {
+            @Override
+            public synchronized void response(MqttMessage mqttMessage) {
+                while (true){
+                    try {
+                        Message<String> responsemessage = MessageBuilder.withPayload(mqttMessage.getMessage()).setHeader(MqttHeaders.TOPIC,mqttMessage.getTopic()).build();
+                        if (mqttPahoMessageHandler != null){
+                            mqttPahoMessageHandler.handleMessage(responsemessage);
+                        }
+                        break;
+                    }catch (Exception e){
+
+                    }
                 }
             }
-
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        });
+        threadPoolExecutor.execute(serviceRunnable);
     }
 
     @PostConstruct

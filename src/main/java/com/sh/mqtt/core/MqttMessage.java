@@ -1,4 +1,4 @@
-package com.sh.doorbell.handler.mqtt;
+package com.sh.mqtt.core;
 
 public class MqttMessage {
     private String topic;

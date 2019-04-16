@@ -1,6 +1,6 @@
 package com.sh.mqtt.core.method;
 
-import com.sh.doorbell.handler.mqtt.MqttMessage;
+import com.sh.mqtt.core.MqttMessage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -58,4 +58,5 @@ public class MqttHandlerMethod {
     public void setResponsemsg(MqttMessage responsemsg) {
         this.responsemsg = responsemsg;
     }
+
 }

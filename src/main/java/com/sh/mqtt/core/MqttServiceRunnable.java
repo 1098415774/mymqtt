@@ -1,14 +1,14 @@
 package com.sh.mqtt.core;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.sh.doorbell.handler.mqtt.MqttMessage;
+import com.sh.mqtt.core.analysis.handler.DefultPackagingHandler;
+import com.sh.mqtt.core.analysis.handler.JsonPackagingHandler;
+import com.sh.mqtt.core.analysis.handler.MqttPreparserHandler;
 import com.sh.mqtt.core.method.MqttHandlerMethod;
-import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 
 import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
 
 public class MqttServiceRunnable implements Runnable{
 
@@ -17,6 +17,10 @@ public class MqttServiceRunnable implements Runnable{
     private MqttHandlerMethod mqttHandlerMethod;
 
     private Message message;
+
+    private DefultPackagingHandler packagingHandler;
+
+    private MqttPreparserHandler preparserHandler;
 
     public MqttServiceRunnable(MqttHandlerMethod mqttHandlerMethod, Message<?> message){
         this.mqttHandlerMethod = mqttHandlerMethod;
@@ -29,8 +33,13 @@ public class MqttServiceRunnable implements Runnable{
             return;
         }
         String msg = message.getPayload().toString();
+        String topic = (String) message.getHeaders().get("mqtt_receivedTopic");
+        RequetMqttMessage requetMqttMessage = new RequetMqttMessage();
+        requetMqttMessage.setTopic(topic);
+        requetMqttMessage.setMessage(msg);
         try {
-            Object result = mqttHandlerMethod.invoke(msg);
+            Object[] args = preparse(msg,requetMqttMessage);
+            Object result = mqttHandlerMethod.invoke(args);
             if (result == null || !mqttHandlerMethod.isResponse()){
                 return;
             }
@@ -48,6 +57,8 @@ public class MqttServiceRunnable implements Runnable{
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
     }
 
@@ -57,5 +68,28 @@ public class MqttServiceRunnable implements Runnable{
 
     public void setListener(MqttSendListener listener) {
         this.listener = listener;
+    }
+
+    private Object[] preparse(String msg, RequetMqttMessage requetMqttMessage) throws ParseException {
+        if (this.preparserHandler != null){
+            msg = preparserHandler.parser(msg,requetMqttMessage,mqttHandlerMethod);
+        }
+        return packagingHandler.parser(msg,requetMqttMessage,mqttHandlerMethod);
+    }
+
+    public MqttPreparserHandler getPreparserHandler() {
+        return preparserHandler;
+    }
+
+    public void setPreparserHandler(MqttPreparserHandler preparserHandler) {
+        this.preparserHandler = preparserHandler;
+    }
+
+    public DefultPackagingHandler getPackagingHandler() {
+        return packagingHandler;
+    }
+
+    public void setPackagingHandler(DefultPackagingHandler packagingHandler) {
+        this.packagingHandler = packagingHandler;
     }
 }

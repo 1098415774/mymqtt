@@ -2,11 +2,14 @@ package com.sh.mqtt.core;
 
 import com.sh.base.utils.SpringUtil;
 import com.sh.base.utils.StringUtils;
-import com.sh.doorbell.handler.mqtt.MqttMessage;
 import com.sh.doorbell.handler.mqtt.MyAbstractMqttMessageHandler;
 import com.sh.mqtt.annotation.MQTTRequestMapping;
 import com.sh.mqtt.annotation.MQTTResponseBody;
 import com.sh.mqtt.core.analysis.StrWildcard;
+import com.sh.mqtt.core.analysis.handler.DefultJsonPackagingHandler;
+import com.sh.mqtt.core.analysis.handler.DefultPackagingHandler;
+import com.sh.mqtt.core.analysis.handler.JsonPackagingHandler;
+import com.sh.mqtt.core.analysis.handler.MqttPreparserHandler;
 import com.sh.mqtt.core.method.MqttHandlerMethod;
 import com.sh.mqtt.stereotype.MQTTController;
 import org.springframework.integration.mqtt.support.MqttHeaders;
@@ -17,10 +20,7 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -35,6 +35,14 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
 
     private HashMap<String, MqttHandlerMethod> visitMap;
 
+    private HashSet<String> visitGlobbingSet = new HashSet<>();
+
+    private HashMap<String, MqttPreparserHandler> preparserHandler;
+
+    private DefultPackagingHandler packagingHandler = new DefultPackagingHandler();
+
+    private JsonPackagingHandler jsonPackagingHandler;
+
     MqttMVCApplication(){
         threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
     }
@@ -44,10 +52,19 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
     public void handleMessage(Message<?> message) throws MessagingException {
         String topic = (String) message.getHeaders().get("mqtt_receivedTopic");
         MqttHandlerMethod mqttHandlerMethod = visitMap.get(topic);
+        if (visitGlobbingSet.size() > 0){
+            Iterator<String> it = visitGlobbingSet.iterator();
+            while (it.hasNext()){
+                String globbing = it.next();
+                String noglobbing = globbing.substring(0,globbing.length() - 1);
+                if (topic.indexOf(noglobbing) == 0){
+                    mqttHandlerMethod = visitMap.get(globbing);
+                }
+            }
+        }
         if (mqttHandlerMethod == null){
             return;
         }
-
         MqttServiceRunnable serviceRunnable = new MqttServiceRunnable(mqttHandlerMethod,message);
         serviceRunnable.setListener(new MqttSendListener() {
             @Override
@@ -65,6 +82,7 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
                 }
             }
         });
+        serviceRunnable.setPackagingHandler(packagingHandler);
         threadPoolExecutor.execute(serviceRunnable);
     }
 
@@ -145,6 +163,9 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
                         rmsg.setTopic(response.value());
                         mqttHandlerMethod.setResponsemsg(rmsg);
                     }
+                    if (visiturl.endsWith("#")){
+                        visitGlobbingSet.add(visiturl);
+                    }
                     visitMap.put(visiturl,mqttHandlerMethod);
                 }
             }
@@ -164,5 +185,22 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
 
     public ClassLoader getClassLoader() {
         return this.classloader == null ? Thread.currentThread().getContextClassLoader() : this.classloader;
+    }
+
+    public HashMap<String, MqttPreparserHandler> getPreparserHandler() {
+        return preparserHandler;
+    }
+
+    public void setPreparserHandler(HashMap<String, MqttPreparserHandler> preparserHandler) {
+        this.preparserHandler = preparserHandler;
+    }
+
+    public JsonPackagingHandler getJsonPackagingHandler() {
+        return jsonPackagingHandler;
+    }
+
+    public void setJsonPackagingHandler(JsonPackagingHandler jsonPackagingHandler) {
+        this.jsonPackagingHandler = jsonPackagingHandler;
+        packagingHandler.setJsonPackagingHandler(jsonPackagingHandler);
     }
 }

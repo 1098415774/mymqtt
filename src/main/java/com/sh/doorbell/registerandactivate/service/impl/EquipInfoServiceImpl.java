@@ -25,6 +25,15 @@ public class EquipInfoServiceImpl implements EquipInfoService {
     }
 
     @Override
+    public List<EquipInfoEntity> selectByUserId(int userid) {
+        HashMap<String,Object> map = new HashMap<>();
+        EquipInfoEntity entity = new EquipInfoEntity();
+        entity.setUserId(String.valueOf(userid));
+        map.put("entity",entity);
+        return mapper.selectByMap(map);
+    }
+
+    @Override
     public int update(EquipInfoEntity record) {
         return mapper.updateByPrimaryKeySelective(record);
     }

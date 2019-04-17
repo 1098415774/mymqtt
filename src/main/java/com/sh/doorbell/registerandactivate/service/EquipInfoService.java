@@ -10,6 +10,8 @@ public interface EquipInfoService {
 
     EquipInfoEntity selectById(Integer id);
 
+    List<EquipInfoEntity> selectByUserId(int userid);
+
     int update(EquipInfoEntity record);
 
     List<EquipInfoEntity> selectByTypeAndUserId(Integer type, String userId);

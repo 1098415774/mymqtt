@@ -12,13 +12,14 @@
             http://www.springframework.org/schema/context
             http://www.springframework.org/schema/context/spring-context-3.0.xsd
                ">
-
+    <context:property-placeholder location="classpath:application.properties"/>
 
     <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
         <property name="maxIdle" value="${redis.maxIdle}" />
-        <property name="maxActive" value="${redis.maxActive}" />
-        <property name="maxWait" value="${redis.maxWait}" />
+        <property name="maxTotal" value="${redis.maxActive}" />
+        <property name="MaxWaitMillis" value="${redis.maxWait}" />
         <property name="testOnBorrow" value="${redis.testOnBorrow}" />
+        <property name="testOnReturn" value="true"></property>
     </bean>
 
     <bean id="connectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
@@ -27,12 +28,21 @@
           p:password="${redis.pass}"
           p:pool-config-ref="poolConfig"/>
 
-    <bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
         <property name="connectionFactory"   ref="connectionFactory" />
+        <property name="keySerializer">
+            <bean
+                    class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+        </property>
+        <property name="valueSerializer">
+            <bean
+                    class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />
+        </property>
     </bean>
 
     <bean id="redisCacheManager" class="com.sh.base.cache.RedisCacheManager">
         <property name="redisTemplate" ref="redisTemplate"/>
+
     </bean>
 
 </beans>

@@ -8,10 +8,10 @@ import java.util.List;
 public class ResultData {
     /*
     * 状态标志位
-    * error:ResultConstant.ERROR
-    * success:ResultConstant.SUCCESS
+    * error:ResultConstants.ERROR
+    * success:ResultConstants.SUCCESS
     * */
-    private String state;
+    private String state = ResultConstants.ERROR;
     //回传信息
     private String msg;
     //查询结果

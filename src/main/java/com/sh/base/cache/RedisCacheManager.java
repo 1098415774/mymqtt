@@ -5,7 +5,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -391,12 +396,12 @@ public class RedisCacheManager {
      *            值 可以是多个
      * @return 成功个数
      */
-    public boolean sSet(String key, Object... values) {
+    public long sSet(String key, Object... values) {
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return -1;
         }
     }
 
@@ -411,15 +416,12 @@ public class RedisCacheManager {
      *            值 可以是多个
      * @return 成功个数
      */
-    public boolean sSetAndTime(String key, long time, Object... values) {
+    public long sSetAndTime(String key, long time, Object... values) {
         try {
-            boolean istrue = redisTemplate.opsForSet().add(key, values);
-            if (time > 0 && istrue)
-                expire(key, time);
-            return istrue;
+            return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return 0;
         }
     }
 
@@ -435,7 +437,7 @@ public class RedisCacheManager {
             return redisTemplate.opsForSet().size(key);
         } catch (Exception e) {
             e.printStackTrace();
-            return 0;
+            return -1;
         }
     }
 
@@ -448,13 +450,13 @@ public class RedisCacheManager {
      *            值 可以是多个
      * @return 移除的个数
      */
-    public boolean setRemove(String key, Object... values) {
+    public long setRemove(String key, Object... values) {
         try {
 
             return redisTemplate.opsForSet().remove(key, values);
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return -1;
         }
     }
     // ===============================list=================================

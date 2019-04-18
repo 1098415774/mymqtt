@@ -3,7 +3,7 @@ package com.sh.doorbell.registerandactivate;
 import com.sh.base.utils.SpringUtil;
 import com.sh.base.utils.StringUtils;
 import com.sh.doorbell.handler.MyAbstractHandler;
-import com.sh.doorbell.handler.mqtt.MqttMessage;
+import com.sh.mqtt.core.MqttMessage;
 import com.sh.doorbell.registerandactivate.entity.EquipInfoEntity;
 import com.sh.doorbell.registerandactivate.service.EquipInfoService;
 import com.sh.doorbell.registerandactivate.service.impl.EquipInfoServiceImpl;

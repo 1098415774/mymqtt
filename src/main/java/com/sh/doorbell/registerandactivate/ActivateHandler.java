@@ -1,8 +1,7 @@
 package com.sh.doorbell.registerandactivate;
 
-import com.alibaba.fastjson.JSONObject;
 import com.sh.base.utils.StringUtils;
-import com.sh.doorbell.handler.mqtt.MqttMessage;
+import com.sh.mqtt.core.MqttMessage;
 import com.sh.doorbell.handler.mqtt.MyAbstractMqttMessageHandler;
 import org.apache.logging.log4j.LogManager;
 

@@ -1,6 +1,7 @@
 package com.sh.doorbell.registerandactivate.controller;
 
 import com.sh.base.cache.LocalUserManager;
+import com.sh.base.cache.RedisCacheManager;
 import com.sh.base.result.ResultConstants;
 import com.sh.base.result.ResultData;
 import com.sh.base.utils.StringUtils;
@@ -32,6 +33,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private EquipInfoService equipInfoService;
+    @Autowired
+    private LocalUserManager localUserManager;
     @Value("${token.length}")
     private Integer token_length;
 
@@ -77,7 +80,7 @@ public class UserController {
                 throw new IllegalAccessException("password mistake!");
             }
             String token = StringUtils.getRandomString(token_length);
-            LocalUserManager.getInstance().setCurrentUser(token,user);
+            localUserManager.setCurrentUser(token,user);
             resultData.setMsg(token);
             resultData.setState(ResultConstants.SUCCESS);
         } catch (Exception e) {
@@ -96,12 +99,13 @@ public class UserController {
             if (StringUtils.isEmpty(token)){
                 throw new IllegalArgumentException("token is null");
             }
-
-//            List<EquipInfoEntity> resultlist = equipInfoService.selectByUserId(user.getId());
-//            resultData.setRows(resultlist);
+            UserEntity user = localUserManager.getCurrentUser(token);
+            List<EquipInfoEntity> resultlist = equipInfoService.selectByUserId(user.getId());
+            resultData.setRows(resultlist);
             resultData.setState(ResultConstants.SUCCESS);
         }catch (Exception e){
             resultData.setMsg(e.getMessage());
+            logger.error(e);
         }
         return resultData;
     }

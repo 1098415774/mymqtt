@@ -1,6 +1,6 @@
 package com.sh.doorbell.handler;
 
-import com.sh.doorbell.handler.mqtt.MqttMessage;
+import com.sh.mqtt.core.MqttMessage;
 
 public abstract class MyAbstractHandler {
     protected MyAbstractHandler myAbstractHandler;

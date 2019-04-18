@@ -38,7 +38,7 @@ public class MqttServiceRunnable implements Runnable{
         requetMqttMessage.setTopic(topic);
         requetMqttMessage.setMessage(msg);
         try {
-            Object[] args = preparse(msg,requetMqttMessage);
+            Object[] args = preparse(msg,requetMqttMessage);//参数封装
             Object result = mqttHandlerMethod.invoke(args);
             if (result == null || !mqttHandlerMethod.isResponse()){
                 return;

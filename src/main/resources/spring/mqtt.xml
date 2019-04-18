@@ -16,7 +16,7 @@
         <property name="password" value="password"/>
         <property name="serverURIs">
             <array>
-                <value>tcp://172.18.11.64:61613</value>
+                <value>tcp://127.0.0.1:61613</value>
             </array>
         </property>
         <property name="keepAliveInterval" value="2"/>
@@ -27,7 +27,7 @@
     </bean>
 
     <bean id="mqttPahoMessageHandler" class="org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler" >
-        <constructor-arg name="url" value="tcp://172.18.11.64:1883"></constructor-arg>
+<!--        <constructor-arg name="url" value="tcp://172.18.11.64:1883"></constructor-arg>-->
         <constructor-arg name="clientId" value="CID_OUT"></constructor-arg>
         <constructor-arg name="clientFactory" ref="clientFactory"></constructor-arg>
 
@@ -49,7 +49,7 @@
 <!--    </bean>-->
 
     <int-mqtt:message-driven-channel-adapter
-            id="activateAdapter" client-id="IN_CID_ACTIVATE" url="tcp://172.18.11.64:1883"
+            id="activateAdapter" client-id="IN_CID_ACTIVATE"
             topics="#"
             qos="1"
             client-factory="clientFactory"

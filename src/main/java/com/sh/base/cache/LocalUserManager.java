@@ -1,6 +1,9 @@
 package com.sh.base.cache;
 
 import com.sh.doorbell.registerandactivate.entity.UserEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -9,33 +12,23 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 @Component
+@PropertySource("classpath:application.properties")
 public class LocalUserManager {
 
-    private static LocalUserManager localUserManager;
+    @Autowired
+    private RedisCacheManager redisCacheManager;
 
-    private static HashMap<String, UserEntity> usermap;
+    @Value("${redis.cache.overtime}")
+    private Integer overtime;
 
-    private LocalUserManager(){
-        initialize();
+    public UserEntity getCurrentUser(String token){
+        return (UserEntity) redisCacheManager.get(token);
     }
 
-    public static LocalUserManager getInstance(){
-        if (localUserManager == null){
-            localUserManager = new LocalUserManager();
+    public void setCurrentUser(String token, UserEntity cuser){
+        if (redisCacheManager.set(token,cuser)){
+            redisCacheManager.expire(token,overtime);
         }
-        return localUserManager;
-    }
-
-    private void initialize() {
-        usermap = new HashMap<>();
-    }
-
-    public static UserEntity getCurrentUser(String token){
-        return usermap.get(token);
-    }
-
-    public static void setCurrentUser(String token, UserEntity cuser){
-        usermap.put(token, cuser);
     }
 
 }

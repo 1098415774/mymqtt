@@ -8,6 +8,7 @@ import com.sh.base.utils.StringUtils;
 import com.sh.doorbell.registerandactivate.RegisterContants;
 import com.sh.doorbell.registerandactivate.entity.EquipInfoEntity;
 import com.sh.doorbell.registerandactivate.entity.UserEntity;
+import com.sh.doorbell.registerandactivate.form.EquipInfoForm;
 import com.sh.doorbell.registerandactivate.form.UserForm;
 import com.sh.doorbell.registerandactivate.service.EquipInfoService;
 import com.sh.doorbell.registerandactivate.service.UserService;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -35,6 +37,8 @@ public class UserController {
     private EquipInfoService equipInfoService;
     @Autowired
     private LocalUserManager localUserManager;
+    @Autowired
+    private RedisCacheManager redisCacheManager;
     @Value("${token.length}")
     private Integer token_length;
 
@@ -101,7 +105,15 @@ public class UserController {
             }
             UserEntity user = localUserManager.getCurrentUser(token);
             List<EquipInfoEntity> resultlist = equipInfoService.selectByUserId(user.getId());
-            resultData.setRows(resultlist);
+            List<EquipInfoForm> rows = new ArrayList<>();
+            for (EquipInfoEntity entity : resultlist){
+                EquipInfoForm form = new EquipInfoForm();
+                String data = (String) redisCacheManager.get("equip/data/" + entity.getId());
+                form.EntityToForm(entity);
+                form.setData(data);
+                rows.add(form);
+            }
+            resultData.setRows(rows);
             resultData.setState(ResultConstants.SUCCESS);
         }catch (Exception e){
             resultData.setMsg(e.getMessage());

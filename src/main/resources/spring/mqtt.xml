@@ -16,7 +16,7 @@
         <property name="password" value="password"/>
         <property name="serverURIs">
             <array>
-                <value>tcp://127.0.0.1:61613</value>
+                <value>tcp://47.106.133.120:61613</value>
             </array>
         </property>
         <property name="keepAliveInterval" value="2"/>
@@ -34,7 +34,7 @@
 
     </bean>
     <bean id="mqttMVCApplication" class="com.sh.mqtt.core.MqttMVCApplication">
-        <property name="typeAliasesPackage" value="com.sh.mqtt.**"/>
+        <property name="typeAliasesPackage" value="com.sh.doorbell.devicecontrol.**"/>
         <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
     </bean>
 <!--    <bean id="activateDoorbellHandler" class="com.sh.doorbell.registerandactivate.ActivateDoorbellHandler">-->

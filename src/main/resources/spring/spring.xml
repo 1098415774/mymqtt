@@ -23,4 +23,6 @@
 
     <import resource="mqtt.xml"/>
 
+    <bean class="com.sh.doorbell.task.TaskQueue" id="taskQueue"></bean>
+
 </beans>

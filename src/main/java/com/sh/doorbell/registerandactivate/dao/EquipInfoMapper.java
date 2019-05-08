@@ -61,4 +61,6 @@ public interface EquipInfoMapper {
     List<EquipInfoEntity> selectByMap(HashMap map);
 
     int selectCoutByMap(HashMap map);
+
+    List<EquipInfoEntity> selectByIds(String[] ids);
 }

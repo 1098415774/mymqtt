@@ -22,6 +22,10 @@
         <property name="keepAliveInterval" value="2"/>
     </bean>
 
+    <bean class="com.sh.doorbell.task.MqttSendQueue" id="mqttSendQueue">
+        <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
+    </bean>
+
     <bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
         <property name="connectionOptions" ref="connectOptions"/>
     </bean>
@@ -36,6 +40,8 @@
     <bean id="mqttMVCApplication" class="com.sh.mqtt.core.MqttMVCApplication">
         <property name="typeAliasesPackage" value="com.sh.doorbell.devicecontrol.**"/>
         <property name="mqttPahoMessageHandler" ref="mqttPahoMessageHandler"/>
+        <property name="prefixtopic" value="service/"/>
+        <property name="mqttSendQueue" ref="mqttSendQueue"/>
     </bean>
 <!--    <bean id="activateDoorbellHandler" class="com.sh.doorbell.registerandactivate.ActivateDoorbellHandler">-->
 <!--        <property name="topic" value="act"/>-->
@@ -49,12 +55,12 @@
 <!--    </bean>-->
 
     <int-mqtt:message-driven-channel-adapter
-            id="activateAdapter" client-id="IN_CID_ACTIVATE"
-            topics="#"
+            id="activateAdapter" url="tcp://47.106.133.120:61613" client-id="IN_CID_ACTIVATE"
+            topics="service/#"
             qos="1"
             client-factory="clientFactory"
             auto-startup="true"
-            send-timeout="12"
+            send-timeout="60"
             channel="activateCase"
             recovery-interval="3000"
     />

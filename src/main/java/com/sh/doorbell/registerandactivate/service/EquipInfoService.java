@@ -10,6 +10,8 @@ public interface EquipInfoService {
 
     EquipInfoEntity selectById(Integer id);
 
+    List<EquipInfoEntity> selectByIds(List ids);
+
     List<EquipInfoEntity> selectByUserId(int userid);
 
     int update(EquipInfoEntity record);

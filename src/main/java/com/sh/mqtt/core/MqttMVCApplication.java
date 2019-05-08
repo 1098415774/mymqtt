@@ -3,6 +3,7 @@ package com.sh.mqtt.core;
 import com.sh.base.utils.SpringUtil;
 import com.sh.base.utils.StringUtils;
 import com.sh.doorbell.handler.mqtt.MyAbstractMqttMessageHandler;
+import com.sh.doorbell.task.MqttSendQueue;
 import com.sh.mqtt.annotation.MQTTRequestMapping;
 import com.sh.mqtt.annotation.MQTTResponseBody;
 import com.sh.mqtt.core.analysis.StrWildcard;
@@ -32,6 +33,8 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
     
     private ClassLoader classloader;
 
+    private String prefixtopic = "";
+
     private HashMap<String, MqttHandlerMethod> visitMap;
 
     private HashSet<String> visitGlobbingSet = new HashSet<>();
@@ -41,6 +44,8 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
     private DefultPackagingHandler packagingHandler = new DefultPackagingHandler();
 
     private JsonPackagingHandler jsonPackagingHandler;
+
+    private MqttSendQueue mqttSendQueue;
 
     MqttMVCApplication(){
         threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
@@ -93,7 +98,13 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
             return;
         }
         insterVisitMap(urls);
-
+        /**
+         *Author Huang [www.HuangJianJun.top]
+         *@Data 2019/5/2 17:52
+         *@Description 添加发送任务线程
+         */
+        Thread thread = new Thread(mqttSendQueue);
+        thread.start();
     }
 
     private List<String> getClassUrl(String path){
@@ -154,7 +165,7 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
                     if (!isresponse && response == null){
                         ismresponse = false;
                     }
-                    String visiturl = fvisiturl + "/" + mrequest.value();
+                    String visiturl = prefixtopic + fvisiturl + "/" + mrequest.value();
                     MqttHandlerMethod mqttHandlerMethod = new MqttHandlerMethod(obj,method);
                     if (ismresponse){
                         mqttHandlerMethod.setIsresponse(ismresponse);
@@ -201,5 +212,21 @@ public class MqttMVCApplication extends MyAbstractMqttMessageHandler implements 
     public void setJsonPackagingHandler(JsonPackagingHandler jsonPackagingHandler) {
         this.jsonPackagingHandler = jsonPackagingHandler;
         packagingHandler.setJsonPackagingHandler(jsonPackagingHandler);
+    }
+
+    public String getPrefixtopic() {
+        return prefixtopic;
+    }
+
+    public void setPrefixtopic(String prefixtopic) {
+        this.prefixtopic = prefixtopic;
+    }
+
+    public MqttSendQueue getMqttSendQueue() {
+        return mqttSendQueue;
+    }
+
+    public void setMqttSendQueue(MqttSendQueue mqttSendQueue) {
+        this.mqttSendQueue = mqttSendQueue;
     }
 }

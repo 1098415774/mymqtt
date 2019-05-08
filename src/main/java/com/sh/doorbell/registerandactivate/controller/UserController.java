@@ -17,10 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +81,7 @@ public class UserController {
                 throw new IllegalAccessException("password mistake!");
             }
             String token = StringUtils.getRandomString(token_length);
-            localUserManager.setCurrentUser(token,user);
+               localUserManager.setCurrentUser(token,user);
             resultData.setMsg(token);
             resultData.setState(ResultConstants.SUCCESS);
         } catch (Exception e) {
@@ -108,7 +105,7 @@ public class UserController {
             List<EquipInfoForm> rows = new ArrayList<>();
             for (EquipInfoEntity entity : resultlist){
                 EquipInfoForm form = new EquipInfoForm();
-                String data = (String) redisCacheManager.get("equip/data/" + entity.getId());
+                String data = (String) redisCacheManager.get("service/equip/data/" + entity.getId());
                 form.EntityToForm(entity);
                 form.setData(data);
                 rows.add(form);

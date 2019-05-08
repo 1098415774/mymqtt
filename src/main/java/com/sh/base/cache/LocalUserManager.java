@@ -22,7 +22,11 @@ public class LocalUserManager {
     private Integer overtime;
 
     public UserEntity getCurrentUser(String token){
-        return (UserEntity) redisCacheManager.get(token);
+        UserEntity entity = (UserEntity) redisCacheManager.get(token);
+        if (entity != null){
+            redisCacheManager.expire(token,overtime);
+        }
+        return entity;
     }
 
     public void setCurrentUser(String token, UserEntity cuser){

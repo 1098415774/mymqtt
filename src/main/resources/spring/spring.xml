@@ -19,10 +19,22 @@
     <context:component-scan base-package="com.sh"/>
 
 <!--    &lt;!&ndash; 引入同文件夹下的redis属性配置文件 &ndash;&gt;-->
-    <import resource="redis.xml"/>
+<!--    <import resource="redis.xml"/>-->
 
-    <import resource="mqtt.xml"/>
+<!--    <import resource="mqtt.xml"/>-->
+
+    <bean id="httpClientFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory">
+        <property name="connectTimeout"  value="3000"/>
+        <property name="readTimeout"  value="3000"/>
+    </bean>
+
+    <!--RestTemplate-->
+    <bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+        <constructor-arg ref="httpClientFactory"/>
+    </bean>
 
     <bean class="com.sh.doorbell.task.TaskQueue" id="taskQueue"></bean>
+
+    <bean class="com.sh.doorbell.task.TaskWakeupRunnable" id="taskWakeupRunnable"></bean>
 
 </beans>

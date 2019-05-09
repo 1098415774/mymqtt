@@ -14,12 +14,16 @@ import org.springframework.messaging.support.MessageBuilder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 
-public class Task {
+public class Task implements Delayed {
 
     private SmartAction smartAction;
 
     private boolean[] ifarray;
+
+    private long delaytime;
 
     private MqttPahoMessageHandler mqttPahoMessageHandler;
 
@@ -38,7 +42,8 @@ public class Task {
             return;
         }
         List<EquipAction> ifactions = smartAction.getIfactions();
-        ifarray = new boolean[ifactions.size()];
+        ifarray = new boolean[ifactions.size() + 1];
+        ifarray[ifarray.length - 1] = true;
         for (int i = 0; i < ifactions.size(); i++){
             final int index = i;
             EquipAction equipAction = ifactions.get(i);
@@ -140,5 +145,26 @@ public class Task {
 
     public void setSmartAction(SmartAction smartAction) {
         this.smartAction = smartAction;
+    }
+
+    public void isaction(boolean isaction){
+        if (ifarray != null && ifarray.length > 0){
+            ifarray[ifarray.length] = isaction;
+        }
+    }
+
+    public void setDelaytime(long delaytime){
+        this.delaytime = TimeUnit.MILLISECONDS.convert(delaytime,TimeUnit.SECONDS) + System.currentTimeMillis();
+    }
+
+    @Override
+    public long getDelay(TimeUnit unit) {
+        long diff = delaytime - System.currentTimeMillis();
+        return unit.convert(diff,TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public int compareTo(Delayed o) {
+        return (delaytime > o.getDelay(TimeUnit.MILLISECONDS)) ? 1 : (delaytime < o.getDelay(TimeUnit.MILLISECONDS) ? -1 : 0);
     }
 }
